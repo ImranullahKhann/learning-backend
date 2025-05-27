@@ -2,14 +2,21 @@ import http from "node:http"
 import { getDataFromDB } from './database/db.js'
 import sendResponse from "./utils/sendResponse.js"
 import { filterData } from "./utils/filterData.js"
+import { getOutputByQueryParams } from "./utils/getOutputByQueryParams.js"
 
 const PORT = 8000
 
 
 const server = http.createServer(async (req, res) => {
+    const urlObj = new URL(req.url, `http://${req.headers.host}`)
+    const queryObj = Object.fromEntries(urlObj.searchParams)
+
     const destinations = await getDataFromDB()
-    if (req.url === '/api' && req.method === 'GET') {
-        sendResponse(res, 200, destinations)
+    if (urlObj.pathname === '/api' && req.method === 'GET') {
+        let payload = destinations
+        if (queryObj)
+            payload = getOutputByQueryParams(destinations, queryObj)
+        sendResponse(res, 200, payload)
     } else if (req.url.startsWith('/api/continent/') && req.method === 'GET') {
         const filteredDestinations = filterData(req, destinations)
 
