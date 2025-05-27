@@ -1,6 +1,7 @@
 import http from "node:http"
 import { getDataFromDB } from './database/db.js'
 import sendResponse from "./utils/sendResponse.js"
+import { filterData } from "./utils/filterData.js"
 
 const PORT = 8000
 
@@ -10,8 +11,11 @@ const server = http.createServer(async (req, res) => {
     if (req.url === '/api' && req.method === 'GET') {
         sendResponse(res, 200, destinations)
     } else if (req.url.startsWith('/api/continent/') && req.method === 'GET') {
-        const cont = req.url.replace("/api/continent/", "")
-        const filteredDestinations = destinations.filter((dest) => dest.continent.toLowerCase() == cont.toLowerCase())
+        const filteredDestinations = filterData(req, destinations)
+
+        sendResponse(res, 200, filteredDestinations)
+    } else if (req.url.startsWith("/api/country/") && req.method === "GET") {
+        const filteredDestinations = filterData(req, destinations)
 
         sendResponse(res, 200, filteredDestinations)
     } else {
